@@ -43,6 +43,8 @@ abstract class CanteraHandle : IDisposable
         }
     }
 
+    public int GetPointer() => _value;
+
     public sealed override string ToString() =>
         $"{GetType().Name} {{{_value}}}";
 

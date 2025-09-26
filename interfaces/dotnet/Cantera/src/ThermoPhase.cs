@@ -68,6 +68,11 @@ public partial class ThermoPhase
             _ => throw new ArgumentOutOfRangeException(nameof(pair))
         };
 
+    /// <summary>
+    /// Gets the pointer to the solution
+    /// </summary>
+    public int GetPointer() => _sol.GetPointer();
+
     partial void ExtraDispose()
     {
         _sol.Dispose();

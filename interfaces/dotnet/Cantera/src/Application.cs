@@ -134,4 +134,15 @@ public static class Application
     public static ThermoPhase CreateThermoPhase(string filename,
                                                 string? phaseName = null) =>
         new ThermoPhase(filename, phaseName);
+
+    /// <summary>
+    ///
+    /// </summary>
+    public static MultiPhase CreateMultiPhase(params (ThermoPhase phase, double moles)[] phases)
+    {
+        if (phases is null || phases.Length == 0)
+            throw new ArgumentException("Must specify at least 1 phase");
+
+        return new MultiPhase(phases);
+    }
 }
