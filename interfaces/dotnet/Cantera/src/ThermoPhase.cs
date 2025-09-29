@@ -182,7 +182,7 @@ public partial class ThermoPhase
             LibCantera.thermo_getPartialMolarEnthalpies(_handle, partialMolarEnthalpies);
 
             double[] standardEnthalpiesRT = new double[nSpecies];
-            double RT = 8314.462618 * Temperature; // R * T (J/mol)
+            double RT = Consts.GasConstant * Temperature; // R * T (J/mol)
 
             for (int i = 0; i < nSpecies; i++)
             {
@@ -206,11 +206,10 @@ public partial class ThermoPhase
             LibCantera.thermo_getPartialMolarCp(_handle, partialMolarCp);
 
             double[] standardCpR = new double[nSpecies];
-            double R = 8314.462618; // Universal gas constant (J/mol·K)
 
             for (int i = 0; i < nSpecies; i++)
             {
-                standardCpR[i] = partialMolarCp[i] / R;
+                standardCpR[i] = partialMolarCp[i] / Consts.GasConstant;
             }
 
             return standardCpR;
