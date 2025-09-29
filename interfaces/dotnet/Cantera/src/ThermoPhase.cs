@@ -73,6 +73,126 @@ public partial class ThermoPhase
     /// </summary>
     public int GetPointer() => _sol.GetPointer();
 
+    /// <summary>
+    /// Gets the moles for each species (mole fractions * total moles).
+    /// Equivalent to Python's: gas.X * (1.0 / gas.mean_molecular_weight)
+    /// </summary>
+    public double[] GetMoles()
+    {
+        double totMoles = 1.0 / MeanMolecularWeight;
+        double[] moleFractions = LibCantera.thermo_getMoleFractions(_handle);
+
+        double[] moles = new double[moleFractions.Length];
+        for (int i = 0; i < moleFractions.Length; i++)
+        {
+            moles[i] = moleFractions[i] * totMoles;
+        }
+
+        return moles;
+    }
+
+    /// <summary>
+    /// Gets the number of elements in the phase.
+    /// Equivalent to Python's: gas.n_elements
+    /// </summary>
+    public int NElements => LibCantera.thermo_nElements(_handle);
+
+    /// <summary>
+    /// Gets the number of species in the phase.
+    /// Equivalent to Python's: gas.n_species
+    /// </summary>
+    public int NSpecies => LibCantera.thermo_nSpecies(_handle);
+
+    /// <summary>
+    /// Gets the element names.
+    /// Equivalent to Python's: gas.element_names
+    /// </summary>
+    public string[] ElementNames
+    {
+        get
+        {
+            int nElements = NElements;
+            string[] names = new string[nElements];
+            for (int i = 0; i < nElements; i++)
+            {
+                names[i] = LibCantera.thermo_elementName(_handle, i);
+            }
+            return names;
+        }
+    }
+
+    /// <summary>
+    /// Gets the species names.
+    /// Equivalent to Python's: gas.species_names
+    /// </summary>
+    public string[] SpeciesNames
+    {
+        get
+        {
+            int nSpecies = NSpecies;
+            string[] names = new string[nSpecies];
+            for (int i = 0; i < nSpecies; i++)
+            {
+                names[i] = LibCantera.thermo_speciesName(_handle, i);
+            }
+            return names;
+        }
+    }
+
+    /// <summary>
+    /// Gets the number of atoms of element m in species k.
+    /// Equivalent to Python's: gas.n_atoms(species, element)
+    /// </summary>
+    /// <param name="speciesIndex">Species index</param>
+    /// <param name="elementIndex">Element index</param>
+    /// <returns>Number of atoms</returns>
+    public double GetNAtoms(int speciesIndex, int elementIndex) =>
+        LibCantera.thermo_nAtoms(_handle, speciesIndex, elementIndex);
+
+    /// <summary>
+    /// Gets the number of atoms of element in species by name.
+    /// Equivalent to Python's: gas.n_atoms(species_name, element_name)
+    /// </summary>
+    /// <param name="speciesName">Species name</param>
+    /// <param name="elementName">Element name</param>
+    /// <returns>Number of atoms</returns>
+    public double GetNAtoms(string speciesName, string elementName)
+    {
+        int speciesIndex = LibCantera.thermo_speciesIndex(_handle, speciesName);
+        int elementIndex = LibCantera.thermo_elementIndex(_handle, elementName);
+        return LibCantera.thermo_nAtoms(_handle, speciesIndex, elementIndex);
+    }
+
+    /// <summary>
+    /// Gets the standard enthalpies divided by RT for each species.
+    /// Equivalent to Python's: gas.standard_enthalpies_RT
+    /// </summary>
+    public double[] StandardEnthalpiesRT
+    {
+        get
+        {
+            int nSpecies = NSpecies;
+            double[] chemPotentials = new double[nSpecies];
+            LibCantera.thermo_getChemPotentials(_handle, chemPotentials);
+
+            // Convert chemical potentials to standard enthalpies/RT
+            // μ/RT = H°/RT - S°/RT
+            // For ideal gas at standard state, we can derive H°/RT from partial molar enthalpies
+            double[] partialMolarEnthalpies = new double[nSpecies];
+            LibCantera.thermo_getPartialMolarEnthalpies(_handle, partialMolarEnthalpies);
+
+            double[] standardEnthalpiesRT = new double[nSpecies];
+            double RT = 8314.462618 * Temperature; // R * T (J/mol)
+
+            for (int i = 0; i < nSpecies; i++)
+            {
+                standardEnthalpiesRT[i] = partialMolarEnthalpies[i] / RT;
+            }
+
+            return standardEnthalpiesRT;
+        }
+    }
+
     partial void ExtraDispose()
     {
         _sol.Dispose();
