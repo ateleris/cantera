@@ -193,6 +193,30 @@ public partial class ThermoPhase
         }
     }
 
+    /// <summary>
+    /// Gets the standard heat capacities divided by R for each species.
+    /// Equivalent to Python's: gas.standard_cp_R
+    /// </summary>
+    public double[] StandardCpR
+    {
+        get
+        {
+            int nSpecies = NSpecies;
+            double[] partialMolarCp = new double[nSpecies];
+            LibCantera.thermo_getPartialMolarCp(_handle, partialMolarCp);
+
+            double[] standardCpR = new double[nSpecies];
+            double R = 8314.462618; // Universal gas constant (J/mol·K)
+
+            for (int i = 0; i < nSpecies; i++)
+            {
+                standardCpR[i] = partialMolarCp[i] / R;
+            }
+
+            return standardCpR;
+        }
+    }
+
     partial void ExtraDispose()
     {
         _sol.Dispose();
