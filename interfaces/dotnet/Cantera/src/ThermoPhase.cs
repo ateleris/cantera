@@ -183,18 +183,7 @@ public partial class ThermoPhase
     {
         get
         {
-            int nSpecies = NSpecies;
-            double[] partialMolarCp = new double[nSpecies];
-            LibCantera.thermo_getPartialMolarCp(_handle, partialMolarCp);
-
-            double[] standardCpR = new double[nSpecies];
-
-            for (int i = 0; i < nSpecies; i++)
-            {
-                standardCpR[i] = partialMolarCp[i] / Consts.GasConstant;
-            }
-
-            return standardCpR;
+            return LibCantera.thermo_getCp_R(_handle);
         }
     }
 
