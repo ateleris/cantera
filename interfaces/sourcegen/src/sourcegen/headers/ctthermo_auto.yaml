@@ -66,6 +66,9 @@ recipes:
 - name: cv_mass
 - name: getChemPotentials  # Renamed in Cantera 3.2 (previously chemPotentials)
 - name: getElectrochemPotentials  # Renamed in Cantera 3.2 (previously electroChemPotentials)
+- name: getEnthalpies_RT
+  wraps: getEnthalpy_RT_ref(double*)
+  uses: nSpecies
 - name: electricPotential
 - name: setElectricPotential
 - name: thermalExpansionCoeff

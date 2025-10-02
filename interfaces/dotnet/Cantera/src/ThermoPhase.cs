@@ -171,25 +171,7 @@ public partial class ThermoPhase
     {
         get
         {
-            int nSpecies = NSpecies;
-            double[] chemPotentials = new double[nSpecies];
-            LibCantera.thermo_getChemPotentials(_handle, chemPotentials);
-
-            // Convert chemical potentials to standard enthalpies/RT
-            // μ/RT = H°/RT - S°/RT
-            // For ideal gas at standard state, we can derive H°/RT from partial molar enthalpies
-            double[] partialMolarEnthalpies = new double[nSpecies];
-            LibCantera.thermo_getPartialMolarEnthalpies(_handle, partialMolarEnthalpies);
-
-            double[] standardEnthalpiesRT = new double[nSpecies];
-            double RT = Consts.GasConstant * Temperature; // R * T (J/mol)
-
-            for (int i = 0; i < nSpecies; i++)
-            {
-                standardEnthalpiesRT[i] = partialMolarEnthalpies[i] / RT;
-            }
-
-            return standardEnthalpiesRT;
+            return LibCantera.thermo_getEnthalpies_RT(_handle);
         }
     }
 
