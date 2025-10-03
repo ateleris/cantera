@@ -2,6 +2,7 @@
 // at https://cantera.org/license.txt for license and copyright information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Cantera.Interop;
 
 namespace Cantera;
@@ -185,6 +186,89 @@ public partial class ThermoPhase
         {
             return LibCantera.thermo_getCp_R(_handle);
         }
+    }
+
+    /// <summary>
+    /// Set Temperature [K] and Pressure [Pa] in a single call (native TP setter).
+    /// </summary>
+    /// <param name="temperature">Temperature in Kelvin</param>
+    /// <param name="pressure">Pressure in Pascal</param>
+    public void SetTP(double temperature, double pressure)
+        => LibCantera.thermo_setState_TP(_handle, temperature, pressure);
+
+    /// <summary>
+    /// Set Temperature [K], Pressure [Pa], and mass fractions in a single call.
+    /// Mirrors Python's <c>TPY</c> assignment to avoid intermediate state changes.
+    /// </summary>
+    /// <param name="temperature">Temperature in Kelvin</param>
+    /// <param name="pressure">Pressure in Pascal</param>
+    /// <param name="massFractions">Sequence of (speciesName, fraction)</param>
+    public void SetTPY(double temperature, double pressure,
+        IEnumerable<(string speciesName, double fraction)> massFractions)
+    {
+        ArgumentNullException.ThrowIfNull(massFractions);
+
+        var y = new double[NSpecies];
+        foreach (var (name, frac) in massFractions)
+        {
+            var idx = Species.IndexOf(name);
+            if (idx < 0)
+            {
+                throw new ArgumentException($"Unknown species '{name}' for phase.");
+            }
+            y[idx] = frac;
+        }
+
+        LibCantera.thermo_setState_TPY(_handle, temperature, pressure, y);
+    }
+
+    /// <summary>
+    /// Set Temperature [K], Pressure [Pa], and mass fractions (array in species order).
+    /// </summary>
+    public void SetTPY(double temperature, double pressure, double[] massFractions)
+    {
+        ArgumentNullException.ThrowIfNull(massFractions);
+        if (massFractions.Length != NSpecies)
+        {
+            throw new ArgumentException($"massFractions must have length {NSpecies}", nameof(massFractions));
+        }
+        LibCantera.thermo_setState_TPY(_handle, temperature, pressure, massFractions);
+    }
+
+    /// <summary>
+    /// Set Temperature [K], Pressure [Pa], and mole fractions in a single call.
+    /// Mirrors Python's <c>TPX</c> assignment.
+    /// </summary>
+    public void SetTPX(double temperature, double pressure,
+        IEnumerable<(string speciesName, double fraction)> moleFractions)
+    {
+        ArgumentNullException.ThrowIfNull(moleFractions);
+
+        var x = new double[NSpecies];
+        foreach (var (name, frac) in moleFractions)
+        {
+            var idx = Species.IndexOf(name);
+            if (idx < 0)
+            {
+                throw new ArgumentException($"Unknown species '{name}' for phase.");
+            }
+            x[idx] = frac;
+        }
+
+        LibCantera.thermo_setState_TPX(_handle, temperature, pressure, x);
+    }
+
+    /// <summary>
+    /// Set Temperature [K], Pressure [Pa], and mole fractions (array in species order).
+    /// </summary>
+    public void SetTPX(double temperature, double pressure, double[] moleFractions)
+    {
+        ArgumentNullException.ThrowIfNull(moleFractions);
+        if (moleFractions.Length != NSpecies)
+        {
+            throw new ArgumentException($"moleFractions must have length {NSpecies}", nameof(moleFractions));
+        }
+        LibCantera.thermo_setState_TPX(_handle, temperature, pressure, moleFractions);
     }
 
     partial void ExtraDispose()
